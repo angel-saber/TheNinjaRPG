@@ -302,6 +302,34 @@ describe("war declaration targets", () => {
     });
   });
 
+  it.each([true, false])(
+    "preserves village war pricing and daily-drain text (objective rules enabled: %s)",
+    (enabled) => {
+      Object.assign(client.api.war.getRules, {
+        useQuery: () => ({ data: { ...defaultWarRules, enabled } }),
+      });
+      const view = mount();
+      fireEvent.click(view.getByRole("button", { name: "Target tile" }));
+      expect(view.getByText(enabled
+        ? /cost of declaring war is 500,000 Village Tokens/
+        : /cost of declaring war is 1,000,000 Village Tokens/)).toBeDefined();
+      if (enabled) {
+        expect(view.getByText(/townhall health lost each day/)).toBeDefined();
+        expect(view.queryByText(/Each day at war reduces your tokens/)).toBeNull();
+      } else {
+        expect(view.getByText(/Each day at war reduces your tokens by 3%/)).toBeDefined();
+      }
+      expect(view.queryByText(/Shrine wars have no daily token drain/)).toBeNull();
+      fireEvent.click(view.getByRole("button", { name: "Declare War" }));
+      expect(declare).toHaveBeenCalledWith({
+        userVillageId: own.id,
+        targetVillageId: target.id,
+        targetStructureRoute: "/townhall",
+      });
+      expect(sectorWar.mutate).not.toHaveBeenCalled();
+    },
+  );
+
   it("declares ordinary village wars against the Town Hall", () => {
     const view = mount();
     fireEvent.click(view.getByRole("button", { name: "Target tile" }));
