@@ -302,7 +302,7 @@ describeWithDatabase("faction war declarations", () => {
       type: "VILLAGE_WAR",
       targetStructureRoute: "/townhall",
     });
-    expect((await readFaction())?.tokens).toBe(TOKENS - WAR_DECLARATION_COST);
+    expect((await readFaction())?.tokens).toBe(TOKENS - 500_000);
   });
   it("releases the approved vote back to pending when the war start throws", async () => {
     await seedWorld("VILLAGE");
