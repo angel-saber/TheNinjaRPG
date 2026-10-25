@@ -48,6 +48,7 @@ import {
   FACTION_RAID_TARGET_COOLDOWN_HOURS,
   MAP_RESERVED_SECTORS,
   MAP_SECTOR_ID_MAX,
+  SHRINE_WAR_DECLARATION_COST,
   VILLAGE_SYNDICATE_ID,
   WAR_ALLY_OFFER_MIN,
   WAR_DAILY_TOKEN_DECAY_PERCENT_BASE,
@@ -1107,11 +1108,8 @@ export const DeclareSectorWarDialogContent: React.FC<DialogContentProps> = (prop
         )}
       </p>
       <p className="py-2">
-        The cost of declaring war is {WAR_DECLARATION_COST.toLocaleString()} Village
-        Tokens. Each day at war reduces your tokens by{" "}
-        {WAR_DAILY_TOKEN_DECAY_PERCENT_BASE}% (increasing to{" "}
-        {WAR_DAILY_TOKEN_DECAY_PERCENT_DAY_5}% after 5 days and{" "}
-        {WAR_DAILY_TOKEN_DECAY_PERCENT_DAY_8}% after 8 days).
+        The cost of declaring war is {SHRINE_WAR_DECLARATION_COST.toLocaleString()}{" "}
+        Village Tokens. Shrine wars have no daily token drain.
       </p>
       <p>Do you confirm?</p>
     </div>

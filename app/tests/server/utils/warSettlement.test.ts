@@ -7,7 +7,7 @@ import {
   FACTION_RAID_REWARD,
   WAR_DEFEAT_STRUCTURE_PENALTY_LEVELS,
   VILLAGE_SYNDICATE_ID,
-  WAR_DECLARATION_COST,
+  SHRINE_WAR_DECLARATION_COST,
   WAR_MINIMUM_MEMBERS_REQUIRED,
   WAR_PURCHASE_SHRINE_TOKEN_COST,
   WAR_SECTOR_LOSS_TOWNHALL_DAMAGE,
@@ -556,7 +556,7 @@ describeWithDatabase("guarded war settlement and delivery", () => {
   it("serializes competing objective and sector declarations without selecting disputed land", async () => {
     const db = await seed();
     await db.delete(war);
-    const declarationTokens = WAR_DECLARATION_COST + defaultWarRules.declarationCost;
+    const declarationTokens = SHRINE_WAR_DECLARATION_COST + defaultWarRules.declarationCost;
     await db.update(village).set({ tokens: declarationTokens });
     await db.update(sector).set({ shrineLevel: 1 });
     await db.insert(gameSetting).values({ id: "OBJECTIVE_WAR_enabled", name: "OBJECTIVE_WAR_enabled", time: new Date(), value: 1 });
@@ -577,7 +577,7 @@ describeWithDatabase("guarded war settlement and delivery", () => {
     const objective = (await db.query.war.findMany()).find((w) => w.rules);
     if (objectiveStarted) expect(objective?.objectiveState?.objectives).toHaveLength(4);
     if (sectorStarted) expect(objective).toBeUndefined();
-    expect(await balance(db, "other")).toBe(declarationTokens - (sectorStarted ? WAR_DECLARATION_COST : 0));
+    expect(await balance(db, "other")).toBe(declarationTokens - (sectorStarted ? SHRINE_WAR_DECLARATION_COST : 0));
     expect(await balance(db, "attacker")).toBe(declarationTokens - (objectiveStarted ? defaultWarRules.declarationCost : 0));
   });
 
@@ -604,7 +604,7 @@ describeWithDatabase("guarded war settlement and delivery", () => {
     const db = await seed();
     await db.delete(war);
     await db.insert(village).values({ id: VILLAGE_SYNDICATE_ID, name: "Syndicate", sector: 99, kageId: "syndicate-kage" });
-    await db.update(village).set({ tokens: WAR_DECLARATION_COST }).where(eq(village.id, "attacker"));
+    await db.update(village).set({ tokens: SHRINE_WAR_DECLARATION_COST }).where(eq(village.id, "attacker"));
     await db.delete(sector).where(eq(sector.sector, sectorId));
     expect(await startSectorWar(db, { id: "unowned-sector", attackerVillageId: "attacker", defenderVillageId: VILLAGE_SYNDICATE_ID, initiatedByUserId: "attacker-kage", sectorId })).toBe(true);
     expect(await balance(db, "attacker")).toBe(0);
@@ -631,7 +631,7 @@ describeWithDatabase("guarded war settlement and delivery", () => {
     await db.delete(war);
     await db
       .update(village)
-      .set({ tokens: WAR_DECLARATION_COST })
+      .set({ tokens: SHRINE_WAR_DECLARATION_COST })
       .where(eq(village.id, "attacker"));
     await db.update(sector).set({ shrineLevel: 3, capturedAt: new Date(0) });
     await insertUsers(
@@ -671,7 +671,7 @@ describeWithDatabase("guarded war settlement and delivery", () => {
   for (const waitForLock of [false, true])
     it(`includes a sector declaration ${waitForLock ? "committed while capture waits on a row lock" : "committed after the sibling snapshot"}`, async () => {
       const db = await seed("SECTOR_WAR");
-      await db.update(village).set({ tokens: WAR_DECLARATION_COST * 2 }).where(eq(village.id, "other"));
+      await db.update(village).set({ tokens: SHRINE_WAR_DECLARATION_COST * 2 }).where(eq(village.id, "other"));
       await insertUsers([
         ...Array.from({ length: WAR_MINIMUM_MEMBERS_REQUIRED }, (_, index) => ({
           userId: index === 0 ? "other-kage" : `other-member-${index}`,
@@ -738,7 +738,7 @@ describeWithDatabase("guarded war settlement and delivery", () => {
         expect(await db.select().from(questHistory)).toHaveLength(0);
         await handleWarEnd(initial, db, { shrineBuilderId: "attacker-kage" });
         expect(await balance(db, "attacker")).toBe(tokens - WAR_PURCHASE_SHRINE_TOKEN_COST);
-        expect(await balance(db, "other")).toBe(WAR_DECLARATION_COST);
+        expect(await balance(db, "other")).toBe(SHRINE_WAR_DECLARATION_COST);
       } finally {
         await connection?.rollback();
         await connection?.end();

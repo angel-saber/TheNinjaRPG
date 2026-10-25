@@ -292,6 +292,9 @@ describe("war declaration targets", () => {
   it("continues offering sector declarations to ordinary villages", () => {
     const view = mount();
     fireEvent.click(view.getByRole("button", { name: "Sector tile" }));
+    expect(view.getByText(/The cost of declaring war is 100,000 Village Tokens/)).toBeDefined();
+    expect(view.getByText(/Shrine wars have no daily token drain/)).toBeDefined();
+    expect(view.queryByText(/Each day at war reduces your tokens/)).toBeNull();
     fireEvent.click(view.getByRole("button", { name: "Declare War" }));
     expect(sectorWar.mutate).toHaveBeenCalledWith({
       sectorId: 105,

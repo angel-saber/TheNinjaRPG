@@ -23,6 +23,7 @@ import {
   IMG_AVATAR_DEFAULT,
   MAP_RESERVED_SECTORS,
   SHRINE_MAX_PER_VILLAGE,
+  SHRINE_WAR_DECLARATION_COST,
   VILLAGE_SYNDICATE_ID,
   WAR_ALLY_MAX_PAYMENT_PERCENTAGE,
   WAR_DECLARATION_COOLDOWN_HOURS,
@@ -1098,9 +1099,9 @@ export const warRouter = createTRPCRouter({
       if (user.userId !== user.village.kageId) {
         return errorResponse("Only the leader can declare sector wars");
       }
-      if (user.village.tokens < WAR_DECLARATION_COST) {
+      if (user.village.tokens < SHRINE_WAR_DECLARATION_COST) {
         return errorResponse(
-          `Your village needs ${WAR_DECLARATION_COST.toLocaleString()} tokens to declare war`,
+          `Your village needs ${SHRINE_WAR_DECLARATION_COST.toLocaleString()} tokens to declare war`,
         );
       }
       if (!attackerVillage) {

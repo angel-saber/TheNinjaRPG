@@ -1,7 +1,7 @@
 import { beforeEach, expect, it } from "bun:test";
 import { eq } from "drizzle-orm";
 import {
-  WAR_DECLARATION_COST,
+  SHRINE_WAR_DECLARATION_COST,
   WAR_MINIMUM_MEMBERS_REQUIRED,
   WAR_PURCHASE_SHRINE_TOKEN_COST,
 } from "@/drizzle/constants";
@@ -29,7 +29,7 @@ const DEFENDER = "sector-defender";
 const LEADER = "sector-leader";
 const TARGET_SECTOR = 105;
 const OWN_SECTOR = 106;
-const TOKENS = WAR_DECLARATION_COST * 2;
+const TOKENS = SHRINE_WAR_DECLARATION_COST * 2;
 
 /** Satisfy sector-war prerequisites so rejection proves the faction purchase rule. */
 const seedWorld = async (type: "VILLAGE" | "HIDEOUT" | "STRONGHOLD") => {
@@ -163,6 +163,25 @@ describeWithDatabase("faction sector purchases", () => {
     },
   );
 
+  it.each([99_999, 100_000, 200_000])(
+    "charges exactly 100,000 tokens for a shrine declaration with %s available",
+    async (available) => {
+      await seedWorld("VILLAGE");
+      const db = await getTestDatabase();
+      await db.update(village).set({ tokens: available }).where(eq(village.id, ATTACKER));
+      const result = await (await callerFor(warRouter, LEADER)).declareSectorWar({
+        sectorId: TARGET_SECTOR,
+        userVillageId: ATTACKER,
+      });
+      const succeeds = available >= 100_000;
+      expect(result.success).toBe(succeeds);
+      const stored = await db.query.village.findFirst({ where: eq(village.id, ATTACKER) });
+      expect(stored?.tokens).toBe(available - (succeeds ? 100_000 : 0));
+      expect(await db.select().from(war)).toHaveLength(succeeds ? 1 : 0);
+      if (!succeeds) expect(result.message).toContain("100,000");
+    },
+  );
+
   it("preserves ordinary village declaration and paid sector claiming", async () => {
     await seedWorld("VILLAGE");
     const caller = await callerFor(warRouter, LEADER);
@@ -182,7 +201,7 @@ describeWithDatabase("faction sector purchases", () => {
     expect(settled?.status).toBe("ATTACKER_VICTORY");
     const [attacker] = await db.select().from(village).where(eq(village.id, ATTACKER));
     expect(attacker?.tokens).toBe(
-      TOKENS - WAR_DECLARATION_COST - WAR_PURCHASE_SHRINE_TOKEN_COST,
+      TOKENS - SHRINE_WAR_DECLARATION_COST - WAR_PURCHASE_SHRINE_TOKEN_COST,
     );
     const sectors = await db.select().from(sector);
     expect(sectors.every((row) => row.villageId === ATTACKER)).toBe(true);

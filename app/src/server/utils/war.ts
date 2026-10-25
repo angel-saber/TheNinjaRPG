@@ -29,6 +29,7 @@ import {
   OBJECTIVE_WAR_DEFEAT_PENALTY_DAYS,
   OBJECTIVE_WAR_DEFEAT_PENALTY_LEVELS,
   OBJECTIVE_WAR_DEFENDER_COOLDOWN_DAYS,
+  SHRINE_WAR_DECLARATION_COST,
   TERR_BOT_ID,
   VILLAGE_SYNDICATE_ID,
   WAR_ATTACKER_EXHAUSTION_MULTIPLIER,
@@ -674,9 +675,12 @@ export const startSectorWar = async (
         return false;
       const charge = await tx
         .update(village)
-        .set({ tokens: sql`${village.tokens} - ${WAR_DECLARATION_COST}` })
+        .set({ tokens: sql`${village.tokens} - ${SHRINE_WAR_DECLARATION_COST}` })
         .where(
-          and(eq(village.id, attacker.id), gte(village.tokens, WAR_DECLARATION_COST)),
+          and(
+            eq(village.id, attacker.id),
+            gte(village.tokens, SHRINE_WAR_DECLARATION_COST),
+          ),
         );
       if (charge.rowsAffected === 0) return false;
       await tx.insert(war).values({
