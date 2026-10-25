@@ -310,7 +310,9 @@ describe("war declaration targets", () => {
       });
       const view = mount();
       fireEvent.click(view.getByRole("button", { name: "Target tile" }));
-      expect(view.getByText(/cost of declaring war is 500,000 Village Tokens/)).toBeDefined();
+      expect(view.getByText(enabled
+        ? /cost of declaring war is 500,000 Village Tokens/
+        : /cost of declaring war is 1,000,000 Village Tokens/)).toBeDefined();
       if (enabled) {
         expect(view.getByText(/townhall health lost each day/)).toBeDefined();
         expect(view.queryByText(/Each day at war reduces your tokens/)).toBeNull();
